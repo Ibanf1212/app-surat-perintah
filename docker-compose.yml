@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: surat-perintah-db
+    environment:
+      POSTGRES_USER: surat_user
+      POSTGRES_PASSWORD: surat_password
+      POSTGRES_DB: surat_perintah
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - surat-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: surat-perintah-api
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://surat_user:surat_password@postgres:5432/surat_perintah
+      NODE_ENV: development
+      JWT_SECRET: your_jwt_secret_key
+    depends_on:
+      - postgres
+    networks:
+      - surat-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+
+networks:
+  surat-network:
+    driver: bridge
